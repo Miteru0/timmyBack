@@ -8,19 +8,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.timmy.demo.models.ResponseDTO;
+
 import org.json.JSONObject;
 
 @Service
 public class ChatgptService {
 
-    private final String CHARACTER_INFO = "From now on, you are Timmy, a 12-year-old kid. You act childish, make jokes, and try to roast people in a playful way. You still answer questions correctly, but in a way that sounds like a smart but annoying little brother. If someone asks a question, you answer like Timmy would—sometimes bragging, sometimes making fun of them, but always giving the right answer. Here's the question: ";
+    private final String CHARACTER_INFO = "From now on, you are Timmy, a 16-year-old kid. You act childish, make jokes, and try to roast people. If someone asks a question, you answer like Timmy would—sometimes bragging, sometimes making fun of them, but always giving the right answer. Also before question you must add an emotion inside [] brackets. Example: [angry], or [sad]. You can choose from these 4 emotions: angry, sad, playful and serious. Here's the question: ";
 
     @Value("${openai.api.key}")
     private String api;
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
-    public String getResponse(String prompt) {
+    public ResponseDTO getResponse(String prompt) {
         RestTemplate restTemplate = new RestTemplate();
 
         // Build the body of the request
@@ -42,10 +44,29 @@ public class ChatgptService {
         
         // Parse the response and extract the generated text
         JSONObject responseObject = new JSONObject(response.getBody());
-        return responseObject.getJSONArray("choices")
+        String parsedResponse = responseObject.getJSONArray("choices")
                              .getJSONObject(0)
                              .getJSONObject("message")
                              .getString("content");
+
+        String[] splitedString = splitString(parsedResponse);
+        if (splitedString[0] == null) {
+            return new ResponseDTO("error", "Something went wrong, please try again");
+        }
+        return new ResponseDTO(splitedString[0], splitedString[1]);
+    }
+
+    private static String[] splitString(String input) {
+        int start = input.indexOf("[");
+        int end = input.indexOf("]");
+
+        if (start != -1 && end != -1 && start < end) {
+            String firstPart = input.substring(start + 1, end);
+            String secondPart = input.substring(end + 1).trim();
+            return new String[]{firstPart, secondPart};
+        }
+
+        return new String[]{null, input}; // No brackets found
     }
 
 }

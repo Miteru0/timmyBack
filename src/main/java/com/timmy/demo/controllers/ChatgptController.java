@@ -5,13 +5,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timmy.demo.models.ResponseDTO;
 import com.timmy.demo.services.ChatgptService;
-
-import java.util.Collections;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-
 
 @RestController
 @RequestMapping("/api/timmy")
@@ -24,15 +20,13 @@ public class ChatgptController {
     }
 
     @PostMapping("/ask")
-    public ResponseEntity<?> ask(@RequestBody String prompt) {
-        String responseText = chatgptService.getResponse(prompt);
-        return ResponseEntity.ok(Collections.singletonMap("response", responseText));  // Wrapping in a JSON object
+    public ResponseDTO ask(@RequestBody String prompt) {
+        return chatgptService.getResponse(prompt);
     }
 
     @GetMapping("/test")
     public String test() {
         return new String("Testing: test");
     }
-    
 
 }
